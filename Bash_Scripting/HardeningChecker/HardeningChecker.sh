@@ -8,7 +8,7 @@ set -u
 
 SettingName=${1:-}
 
-# Declare associative array, where each key is a combination of setting name and value
+# Declare associative arrays
 declare -A PermitRootLogin PasswordAuthentication
 PermitRootLogin["no"]="[PASS] Root login disabled entirely"
 PermitRootLogin["yes"]="[FAIL] Root login allowed with password (high risk)"
