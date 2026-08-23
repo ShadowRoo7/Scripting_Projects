@@ -5,7 +5,39 @@
 #  it just reports.
 
 set -u
+
 SettingName=${1:-}
+
+# Declare associative array, where each key is a combination of setting name and value
+declare -A PermitRootLogin PasswordAuthentication
+PermitRootLogin["no"]="[PASS] Root login disabled entirely"
+PermitRootLogin["yes"]="[FAIL] Root login allowed with password (high risk)"
+PermitRootLogin["prohibit-password"]="[PASS] Root login restricted to key-based auth (reasonably safe)"
+PasswordAuthentication["no"]="[PASS] Disables password login and forces SSH key-based authentication (safer)"
+PasswordAuthentication["yes"]="[FAIL] allows password login, which can be targeted by brute-force attacks (riskier)"
+
+lookup_verdict(){
+	# Store the arguments passed to the function in these variables
+	local array_name="$1"
+	local value_to_check="$2"
+
+	# table now "points at" the real array
+	declare -n table="$array_name"
+
+	# -v tests whether this specific array KEY is set at all
+	if declare -p $array_name &>/dev/null 
+	then
+		if [[ -v table["$value_to_check"] ]]
+		then
+        		echo "${table[$value_to_check]}"
+    		else
+        		echo "[WARNING] unrecognized value: $value_to_check"
+    		fi
+	else
+		echo "$array_name array does not exist"
+	fi
+}
+
 usage(){
         echo -e "\nusage:\n\t$0 <SettingName> [...]\n" >&2
 }
@@ -19,8 +51,8 @@ then
 fi
 
 while read -r line
-do
-        matches_found=$((matches_found + 1))
+do	
+	matches_found=$((matches_found + 1))
         echo ""
         echo "$line"
 
@@ -31,48 +63,18 @@ do
                 echo "This line is Commented"
                 echo ""
 		
-	elif [[ "$line" =~ ^[[:space:]]*$SettingName && "$SettingName" == "PasswordAuthentication" ]]
+	elif [[ "$line" =~ ^[[:space:]]*$SettingName ]]
 	then
-                keyword=$(echo "$line" | awk '{ print $2 }')
-                if [[ "$keyword" == "no" ]]
-                then
-			echo "[PASS] disables password login and forces SSH key-based authentication. (Safer)"
-                        echo ""
-
-                elif [[ "$keyword" == "yes" ]]
-                then
-			echo "[FAIL] allows password login, which can be targeted by brute-force attacks (Riskier)"
-                        echo ""
-                else
-                        echo "[Warning] Unknown Value: $keyword"
-                        echo ""
-                fi
-
-
-        elif [[ "$line" =~ ^[[:space:]]*$SettingName && "$SettingName" == "PermitRootLogin" ]]
-        then
-                keyword=$(echo "$line" | awk '{ print $2 }')
-                if [[ "$keyword" == "no" ]]
-                then
-                        echo "[PASS] Root login disabled entirely"
-                        echo ""
-                elif [[ "$keyword" == "prohibit-password" ]]
-                then
-                        echo "[PASS] Root login restricted to key-based auth (reasonably safe)"
-                        echo ""
-                elif [[ "$keyword" == "yes" ]]
-                then
-                        echo "[FAIL] Root login allowed with password — high risk"
-                        echo ""
-                else
-                        echo "[Warning] Unknown Value: $keyword"
-                        echo ""
-                fi
-        else
-                echo "neither - correctly excluded"
+                
+		keyword=$(echo "$line" | awk '{ print $2 }')
+		lookup_verdict "$SettingName" "$keyword"
+    		echo ""
         fi
+
 done < <(grep "$SettingName" "/etc/ssh/sshd_config")
+
 if [[ $matches_found -eq 0 ]]
 then
         echo "$SettingName was not found"
 fi
+
