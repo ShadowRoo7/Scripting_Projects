@@ -27,6 +27,30 @@ X11Forwarding["yes"]="[WARNING] X11 forwarding enabled — only needed for GUI a
 PubkeyAuthentication["yes"]="[PASS] Key-based authentication is enabled"
 PubkeyAuthentication["no"]="[FAIL] Key-based authentication is disabled — relies on weaker auth methods"
 
+# This Function tells you any user other than root has the UID equal to 0
+suspicious_user(){
+	echo "--- Checking suspicious user in /etc/passwd ---"
+	count=0
+	while read -r line
+        do
+		username="$(echo "$line" | awk -F':' '{ print $1 }')"
+		UserID="$(echo $line | awk -F':' '{ print $3 }')"
+		
+		if [[ "$username" != "root" ]] && [[ "$UserID" == "0" ]]
+		then
+			echo "!!!!!! Found something suspicious !!!!!!"
+			echo "$username has the UID of $UserID"
+			count=$((count + 1))
+		fi
+
+	done < <(cat "/etc/passwd")
+	
+	if [[ $count -eq 0 ]]
+	then 
+		echo "Nothing suspicious found in /etc/passwd"
+	fi
+}
+
 # This Function tells you the verdict based on the value_to_check
 lookup_verdict(){
 	# Store the arguments passed to the function in these variables
@@ -94,6 +118,51 @@ then
 	for s in "${default_settings[@]}"; do
 		Reporter "$s"
     	done
+	suspicious_user
 else
 	Reporter "$SettingName"
+	suspicious_user
 fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
