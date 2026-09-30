@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div hx-get="{% url 'core:partial_today' %}" hx-trigger="every 5s" hx-swap="innerHTML">
+  {% include "core/partials/today.html" %}
+</div>
+
+<div hx-get="{% url 'core:partial_current' %}" hx-trigger="every 5s" hx-swap="innerHTML">
+  {% include "core/partials/current_zone.html" %}
+</div>
+
+<div hx-get="{% url 'core:partial_history' %}" hx-trigger="every 15s" hx-swap="innerHTML">
+  {% include "core/partials/history.html" %}
+</div>
+
+<script>
+document.addEventListener("submit", function (e) {
+  const form = e.target;
+  if (form.id !== "delivery-form") return;
+  const name = form.querySelector("[name=client]");
+  const lat = form.querySelector("[name=lat]");
+  const lng = form.querySelector("[name=lng]");
+  if (name.value.trim() === "" && navigator.geolocation) {
+    e.preventDefault();
+    const go = () => form.submit();
+    navigator.geolocation.getCurrentPosition(
+      (p) => { lat.value = p.coords.latitude.toFixed(6);
+               lng.value = p.coords.longitude.toFixed(6); go(); },
+      go, { enableHighAccuracy: true, timeout: 6000 });
+  }
+});
+</script>
+{% endblock %}

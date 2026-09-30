@@ -1,0 +1,27 @@
+{% load humanize %}
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-4"><div class="stat tone-blue">
+    <div class="ic"><i class="bi bi-box-seam"></i></div>
+    <div><div class="lbl">Chargés</div><div class="val">{{ loading.qty_loaded }}</div></div>
+  </div></div>
+  <div class="col-6 col-md-4"><div class="stat tone-violet">
+    <div class="ic"><i class="bi bi-arrow-counterclockwise"></i></div>
+    <div><div class="lbl">Restant préc.</div><div class="val">{{ loading.qty_carried }}</div></div>
+  </div></div>
+  <div class="col-6 col-md-4"><div class="stat tone-green">
+    <div class="ic"><i class="bi bi-bag-check"></i></div>
+    <div><div class="lbl">Livrés</div><div class="val">{{ s.qty }}</div></div>
+  </div></div>
+  <div class="col-6 col-md-4"><div class="stat tone-cyan">
+    <div class="ic"><i class="bi bi-stack"></i></div>
+    <div><div class="lbl">Restant</div><div class="val">{{ s.remaining }}</div></div>
+  </div></div>
+  <div class="col-6 col-md-4"><div class="stat tone-green">
+    <div class="ic"><i class="bi bi-wallet2"></i></div>
+    <div><div class="lbl">Encaissé</div><div class="val">{{ s.paid|intcomma }} <small>F</small></div></div>
+  </div></div>
+  <div class="col-6 col-md-4"><div class="stat tone-amber">
+    <div class="ic"><i class="bi bi-hourglass-split"></i></div>
+    <div><div class="lbl">Crédit</div><div class="val">{{ s.credit|intcomma }} <small>F</small></div></div>
+  </div></div>
+</div>

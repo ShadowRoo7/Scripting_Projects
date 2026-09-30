@@ -1,0 +1,34 @@
+{% load humanize %}
+<section class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h2 class="h6 mb-0"><i class="bi bi-clock-history"></i> Chargements terminés
+      <span class="text-muted fw-normal">· {{ history_days }} derniers jours</span></h2>
+    <a class="btn btn-sm btn-outline-secondary no-print" href="{% url 'core:export_csv' %}">
+      <i class="bi bi-download"></i> CSV
+    </a>
+  </div>
+  <div class="table-responsive">
+  <table class="table table-sm align-middle">
+    <thead><tr>
+      <th>N°</th><th>Date</th><th class="text-end">Disponibles</th><th class="text-end">Livrés</th>
+      <th class="text-end">Restant</th><th class="text-end">Payé</th><th class="text-end">Crédit</th><th class="no-print"></th>
+    </tr></thead>
+    <tbody>
+      {% for r in history_rows %}
+      <tr>
+        <td><span class="badge text-bg-primary">#{{ r.loading.number }}</span></td>
+        <td>{{ r.loading.created_at|date:"d/m H:i" }}</td>
+        <td class="text-end">{{ r.loading.available }}</td>
+        <td class="text-end">{{ r.stats.qty }}</td>
+        <td class="text-end">{{ r.stats.remaining }}</td>
+        <td class="text-end"><b>{{ r.stats.paid|intcomma }}</b></td>
+        <td class="text-end">{{ r.stats.credit|intcomma }}</td>
+        <td class="no-print"><a class="btn btn-sm btn-link p-0" href="{% url 'core:loading_detail' r.loading.pk %}">Détails <i class="bi bi-chevron-right"></i></a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8"><div class="empty"><span class="emoji">📭</span>Aucun chargement terminé.</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>

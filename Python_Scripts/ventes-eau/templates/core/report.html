@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+  <h1 class="h4 mb-0">Rapport</h1>
+  <button class="btn btn-outline-primary" onclick="window.print()"><i class="bi bi-printer"></i> Imprimer / PDF</button>
+</div>
+
+<form method="get" class="row g-2 align-items-end mb-4 no-print">
+  <div class="col-auto">
+    <label class="form-label small text-muted">Du</label>
+    <input type="date" name="from" value="{{ start|date:'Y-m-d' }}" class="form-control">
+  </div>
+  <div class="col-auto">
+    <label class="form-label small text-muted">Au</label>
+    <input type="date" name="to" value="{{ end|date:'Y-m-d' }}" class="form-control">
+  </div>
+  <div class="col-auto"><button class="btn btn-primary">Afficher</button></div>
+</form>
+
+<section class="card shadow-sm mb-3">
+  <div class="card-header fw-bold">Ventes d'eau — du {{ start|date:"d/m/Y" }} au {{ end|date:"d/m/Y" }}</div>
+  <div class="table-responsive">
+  <table class="table table-sm align-middle mb-0">
+    <thead class="table-light"><tr>
+      <th>Jour</th><th class="text-end">Sachets</th><th class="text-end">Espèces</th>
+      <th class="text-end">Wave</th><th class="text-end">Crédit vendu</th>
+      <th class="text-end">Remb. espèces</th><th class="text-end">Remb. Wave</th><th class="text-end">Encaissé</th>
+    </tr></thead>
+    <tbody>
+      {% for d in days %}
+      <tr>
+        <td>{{ d.day|date:"D d/m/Y" }}</td>
+        <td class="text-end">{{ d.qty }}</td>
+        <td class="text-end">{{ d.especes|intcomma }}</td>
+        <td class="text-end">{{ d.wave|intcomma }}</td>
+        <td class="text-end">{{ d.credit|intcomma }}</td>
+        <td class="text-end">{{ d.rep_especes|intcomma }}</td>
+        <td class="text-end">{{ d.rep_wave|intcomma }}</td>
+        <td class="text-end fw-bold">{{ d.especes|add:d.rep_especes|add:d.wave|add:d.rep_wave|intcomma }}</td>
+      </tr>
+      {% empty %}<tr><td colspan="8" class="text-muted">Aucune donnée sur cette période.</td></tr>{% endfor %}
+    </tbody>
+    {% if days %}
+    <tfoot class="table-dark fw-bold">
+      <tr>
+        <td>TOTAL</td>
+        <td class="text-end">{{ totals.qty }}</td>
+        <td class="text-end">{{ totals.especes|intcomma }}</td>
+        <td class="text-end">{{ totals.wave|intcomma }}</td>
+        <td class="text-end">{{ totals.credit|intcomma }}</td>
+        <td class="text-end">{{ totals.rep_especes|intcomma }}</td>
+        <td class="text-end">{{ totals.rep_wave|intcomma }}</td>
+        <td class="text-end">{{ totals.cash_in|intcomma }}</td>
+      </tr>
+    </tfoot>
+    {% endif %}
+  </table>
+  </div>
+</section>
+{% endblock %}

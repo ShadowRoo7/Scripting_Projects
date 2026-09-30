@@ -1,0 +1,7 @@
+Django>=5.0
+django-simple-history
+requests
+gunicorn
+dj-database-url
+whitenoise
+psycopg[binary]

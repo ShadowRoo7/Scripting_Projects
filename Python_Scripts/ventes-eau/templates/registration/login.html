@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Connexion — Ventes d'eau{% endblock %}
+{% block bodyclass %}auth{% endblock %}
+{% block content %}
+<div class="card auth-card">
+  <div class="card-body p-4 p-md-5">
+    <div class="auth-logo">💧</div>
+    <h1 class="h4 text-center mb-1">Ventes d'eau</h1>
+    <p class="text-center text-muted mb-4">Connectez-vous pour commencer</p>
+    {% if form.errors %}
+    <div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Identifiant ou mot de passe incorrect.</div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <label class="form-label small" for="id_username">Identifiant</label>
+      <div class="input-group mb-3">
+        <span class="input-group-text"><i class="bi bi-person"></i></span>
+        <input class="form-control" id="id_username" name="username" autofocus required autocomplete="username">
+      </div>
+      <label class="form-label small" for="id_password">Mot de passe</label>
+      <div class="input-group mb-4">
+        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+        <input type="password" class="form-control" id="id_password" name="password" required autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary btn-lg w-100">Se connecter <i class="bi bi-arrow-right"></i></button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% load humanize %}
+<div class="table-responsive">
+<table class="table table-sm align-middle">
+  <thead><tr>
+    <th>Heure</th><th>Client</th><th class="text-end">Sachets</th>
+    <th class="text-end">Prix unitaire</th><th class="text-end">Montant</th>
+    <th>Paiement</th><th class="no-print"></th>
+  </tr></thead>
+  <tbody>
+    {% for d in deliveries %}
+    <tr>
+      <td>{{ d.created_at|date:"H:i" }}</td>
+      <td>
+        {% if d.client %}<b>{{ d.client.name }}</b>
+        {% elif d.lat %}
+          <a class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2" target="_blank" rel="noopener"
+             href="https://www.google.com/maps?q={{ d.lat }},{{ d.lng }}">
+            <i class="bi bi-geo-alt-fill"></i> Lieu</a>
+        {% else %}<span class="text-muted">—</span>{% endif %}
+      </td>
+      <td class="text-end">{{ d.qty }}</td>
+      <td class="text-end">{{ d.unit_price|intcomma }}</td>
+      <td class="text-end"><b>{{ d.amount|intcomma }}</b> F</td>
+      <td>
+        {% if d.payment == 'especes' %}<span class="badge text-bg-success">Espèces</span>
+        {% elif d.payment == 'wave' %}<span class="badge text-bg-info">Wave</span>
+        {% else %}<span class="badge text-bg-warning">Crédit</span>{% endif %}
+      </td>
+      <td class="no-print">
+        <form method="post" action="{% url 'core:delivery_delete' d.pk %}"
+              onsubmit="return confirm('Supprimer cette livraison ?')">
+          {% csrf_token %}<button class="btn btn-sm btn-link text-danger p-0">Supprimer</button>
+        </form>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7"><div class="empty"><span class="emoji">🧾</span>Aucune livraison enregistrée.</div></td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>

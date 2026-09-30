@@ -1,0 +1,19 @@
+{% load humanize %}
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3"><div class="stat tone-blue">
+    <div class="ic"><i class="bi bi-droplet-fill"></i></div>
+    <div><div class="lbl">Sachets vendus</div><div class="val">{{ t.qty }}</div></div>
+  </div></div>
+  <div class="col-6 col-lg-3"><div class="stat tone-green">
+    <div class="ic"><i class="bi bi-cash-coin"></i></div>
+    <div><div class="lbl">Espèces encaissées</div><div class="val">{{ t.cash|intcomma }} <small>F</small></div></div>
+  </div></div>
+  <div class="col-6 col-lg-3"><div class="stat tone-cyan">
+    <div class="ic"><i class="bi bi-water"></i></div>
+    <div><div class="lbl">Wave encaissé</div><div class="val">{{ t.wave_total|intcomma }} <small>F</small></div></div>
+  </div></div>
+  <div class="col-6 col-lg-3"><div class="stat tone-amber">
+    <div class="ic"><i class="bi bi-hourglass-split"></i></div>
+    <div><div class="lbl">Crédit vendu</div><div class="val">{{ t.credit|intcomma }} <small>F</small></div></div>
+  </div></div>
+</div>

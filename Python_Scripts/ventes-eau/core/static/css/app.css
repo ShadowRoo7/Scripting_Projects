@@ -1,0 +1,239 @@
+/* ============================================================
+   💧 Ventes d'eau — thème « Aqua »
+   Toute l'ambiance se règle dans les variables ci-dessous.
+   ============================================================ */
+
+:root {
+  --aqua-900: #062544;   /* bleu nuit (barres, entêtes)      */
+  --aqua-600: #0d6aa0;   /* bleu profond (boutons)           */
+  --aqua-400: #14a3c9;   /* cyan (accents, dégradés)         */
+  --ink:      #0e2438;   /* texte principal                  */
+  --muted:    #5c7893;   /* texte secondaire                 */
+  --bg:       #eaf3fb;   /* fond de page                     */
+  --line:     #e3edf6;   /* bordures                         */
+  --radius:   18px;
+  --shadow: 0 2px 6px rgba(6,37,68,.05), 0 14px 34px rgba(6,37,68,.08);
+  --font: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ---------- Base ---------- */
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  background:
+    radial-gradient(1100px 480px at 85% -10%, rgba(20,163,201,.18), transparent 60%),
+    radial-gradient(900px 420px at -10% 0%, rgba(13,106,160,.12), transparent 55%),
+    var(--bg);
+  min-height: 100vh;
+  padding-bottom: calc(88px + env(safe-area-inset-bottom)); /* place pour la barre mobile */
+}
+@media (min-width: 768px) { body { padding-bottom: 28px; } }
+
+h1, h2, h3, h4, h5, h6 { font-weight: 800; letter-spacing: -.01em; }
+a { text-decoration: none; }
+.text-muted { color: var(--muted) !important; }
+:focus-visible { outline: 3px solid rgba(20,163,201,.45); outline-offset: 2px; }
+
+/* ---------- Barre du haut ---------- */
+.navbar-app {
+  background: linear-gradient(100deg, var(--aqua-900), var(--aqua-600) 55%, var(--aqua-400));
+  box-shadow: 0 10px 30px rgba(6,37,68,.35);
+  padding: .55rem 0;
+}
+.navbar-app .navbar-brand { font-weight: 800; font-size: 1.1rem; }
+.brand-drop {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; margin-right: 9px; border-radius: 11px;
+  background: rgba(255,255,255,.18); font-size: 17px;
+}
+.navbar-app .nav-link {
+  color: rgba(255,255,255,.85); font-weight: 600;
+  border-radius: 999px; padding: .35rem .95rem !important;
+  transition: background .15s, color .15s;
+}
+.navbar-app .nav-link:hover { color: #fff; background: rgba(255,255,255,.13); }
+.navbar-app .nav-link.active { color: #fff; background: rgba(255,255,255,.24); }
+.user-badge {
+  background: rgba(255,255,255,.16); color: #fff;
+  font-weight: 600; padding: .5em .95em; border-radius: 999px;
+}
+
+/* ---------- Barre mobile (bas d'écran, style application) ---------- */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1040;
+  display: flex; justify-content: space-around;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+}
+.tabbar a {
+  flex: 1; text-align: center; color: var(--muted);
+  font-size: .68rem; font-weight: 700; line-height: 1.15;
+  padding: 5px 2px; border-radius: 14px;
+  transition: color .15s, background .15s;
+}
+.tabbar a i { display: block; font-size: 1.3rem; margin-bottom: 2px; }
+.tabbar a.active { color: var(--aqua-600); background: var(--bg); }
+@media (min-width: 768px) { .tabbar { display: none; } }
+
+/* ---------- Cartes ---------- */
+.card {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: #fff; box-shadow: var(--shadow);
+}
+.card-header {
+  background: transparent; border-bottom: 1px solid var(--line);
+  font-weight: 800; padding: .85rem 1.15rem;
+}
+.card-body { padding: 1.15rem; }
+.card-footer { background: transparent; border-top: 1px solid var(--line); }
+
+/* ---------- Tuiles de statistiques ---------- */
+.stat {
+  position: relative; height: 100%; display: flex; align-items: center; gap: .8rem;
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: .95rem 1rem .85rem; overflow: hidden;
+  transition: transform .15s ease;
+}
+.stat:hover { transform: translateY(-2px); }
+.stat::after {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: var(--tone, var(--aqua-400));
+}
+.stat .ic {
+  flex: 0 0 auto; width: 46px; height: 46px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; color: #fff; background: var(--tone, var(--aqua-400));
+}
+.stat .lbl {
+  font-size: .7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .045em; color: var(--muted);
+}
+.stat .val { font-size: 1.35rem; font-weight: 800; line-height: 1.15; }
+.stat .val small { font-size: .85rem; font-weight: 700; color: var(--muted); }
+
+.tone-blue   { --tone: #0d6aa0; }
+.tone-cyan   { --tone: #0891b2; }
+.tone-green  { --tone: #16a34a; }
+.tone-amber  { --tone: #d97706; }
+.tone-violet { --tone: #7c3aed; }
+
+/* ---------- Boutons ---------- */
+.btn { border-radius: 12px; font-weight: 700; }
+.btn-lg { border-radius: 14px; }
+.btn-primary {
+  --bs-btn-bg: var(--aqua-600); --bs-btn-border-color: var(--aqua-600);
+  --bs-btn-hover-bg: var(--aqua-900); --bs-btn-hover-border-color: var(--aqua-900);
+  --bs-btn-active-bg: var(--aqua-900); --bs-btn-active-border-color: var(--aqua-900);
+  --bs-btn-disabled-bg: #9fbcd2; --bs-btn-disabled-border-color: #9fbcd2;
+  border: 0;
+  background-image: linear-gradient(135deg, var(--aqua-600), var(--aqua-400));
+  box-shadow: 0 8px 20px rgba(13,106,160,.30);
+}
+.btn-primary:hover, .btn-primary:focus {
+  background-image: linear-gradient(135deg, var(--aqua-900), var(--aqua-400));
+}
+.btn-outline-secondary {
+  --bs-btn-color: var(--muted); --bs-btn-border-color: var(--line);
+  --bs-btn-hover-bg: #f2f8fd; --bs-btn-hover-border-color: var(--aqua-400);
+  --bs-btn-hover-color: var(--aqua-600);
+  --bs-btn-active-bg: #e6f2fb; --bs-btn-active-border-color: var(--aqua-400);
+}
+.btn-outline-danger {
+  --bs-btn-color: #dc2626; --bs-btn-border-color: #fbd5d5;
+  --bs-btn-hover-bg: #fef2f2; --bs-btn-hover-border-color: #dc2626;
+  --bs-btn-active-bg: #fee2e2; --bs-btn-active-border-color: #dc2626;
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--aqua-600); --bs-btn-border-color: #bfe3f2;
+  --bs-btn-hover-bg: #eff8fd; --bs-btn-hover-border-color: var(--aqua-400);
+  --bs-btn-active-bg: #e4f3fb; --bs-btn-active-border-color: var(--aqua-400);
+}
+.btn-link { color: var(--aqua-600); font-weight: 700; }
+.btn-link:hover { color: var(--aqua-900); }
+
+/* ---------- Formulaires ---------- */
+.form-control, .form-select {
+  border-radius: 12px; border-color: var(--line);
+  padding: .55rem .85rem; font-weight: 600; background: #fbfdff;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--aqua-400); background: #fff;
+  box-shadow: 0 0 0 .22rem rgba(20,163,201,.18);
+}
+.form-label.small {
+  font-weight: 700; text-transform: uppercase;
+  letter-spacing: .03em; color: var(--muted);
+}
+.input-group-text { background: #f0f6fb; border-color: var(--line); color: var(--muted); }
+.input-group > .form-control { border-radius: 0 12px 12px 0; }
+.input-group > .input-group-text { border-radius: 12px 0 0 12px; }
+
+/* ---------- Tableaux ---------- */
+.table-responsive { border: 1px solid var(--line); border-radius: 14px; }
+.table thead th {
+  font-size: .7rem; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--muted); font-weight: 800;
+  background: #f4f9fd; border-bottom: 2px solid var(--line);
+  padding: .6rem .8rem;
+}
+.table td { padding: .68rem .8rem; border-color: var(--line); font-weight: 600; }
+.table-dark { --bs-table-bg: var(--aqua-900); --bs-table-color: #fff; }
+
+/* ---------- Pastilles (badges) ---------- */
+.badge { border-radius: 999px; font-weight: 700; padding: .45em .95em; }
+.badge.text-bg-success   { background: #dcfce7 !important; color: #15803d !important; }
+.badge.text-bg-info      { background: #cffafe !important; color: #0e7490 !important; }
+.badge.text-bg-warning   { background: #fef3c7 !important; color: #b45309 !important; }
+.badge.text-bg-danger    { background: #fee2e2 !important; color: #b91c1c !important; }
+.badge.text-bg-secondary { background: #e2e8f0 !important; color: #475569 !important; }
+.badge.text-bg-primary   { background: #dbeafe !important; color: #1d4ed8 !important; }
+
+/* ---------- Messages flash ---------- */
+.alert { border: 0; border-radius: 14px; font-weight: 600; box-shadow: var(--shadow); }
+.alert-success { background: #ecfdf5; color: #047857; }
+.alert-danger  { background: #fef2f2; color: #b91c1c; }
+.alert-info    { background: #eff6ff; color: #1d4ed8; }
+.alert-warning { background: #fffbeb; color: #b45309; }
+
+/* ---------- États vides ---------- */
+.empty { text-align: center; padding: 2.2rem 1rem; color: var(--muted); font-weight: 600; }
+.empty .emoji { display: block; font-size: 1.9rem; margin-bottom: .3rem; }
+
+/* ---------- Point « en direct » (temps réel) ---------- */
+.live-dot {
+  display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+  background: #22c55e; margin-left: 4px;
+  box-shadow: 0 0 0 0 rgba(34,197,94,.6); animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  70%  { box-shadow: 0 0 0 9px rgba(34,197,94,0); }
+  100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+}
+
+/* ---------- Page de connexion ---------- */
+body.auth {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 1rem;
+  background:
+    radial-gradient(900px 500px at 80% -10%, rgba(20,163,201,.35), transparent 60%),
+    linear-gradient(150deg, var(--aqua-900) 0%, var(--aqua-600) 60%, var(--aqua-400) 130%);
+}
+body.auth main { padding-top: 0 !important; padding-bottom: 0 !important; }
+.auth-card { border: 0; border-radius: 22px; box-shadow: 0 30px 80px rgba(3,20,40,.45); }
+.auth-logo {
+  width: 64px; height: 64px; margin: 0 auto 1rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; color: #fff; border-radius: 20px;
+  background: linear-gradient(135deg, var(--aqua-600), var(--aqua-400));
+  box-shadow: 0 12px 30px rgba(13,106,160,.4);
+}
+
+/* ---------- Impression (rapport → PDF) ---------- */
+@media print {
+  body { background: #fff !important; padding-bottom: 0 !important; }
+  .card { box-shadow: none !important; }
+  .no-print { display: none !important; }
+}
