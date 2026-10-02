@@ -112,18 +112,25 @@ def delivery_add(request):
     form = DeliveryForm(request.POST)
     if form.is_valid():
         data = form.cleaned_data
+        qty = data.get("qty") or 0
+        qty_gift = data.get("qty_gift") or 0
         remaining = loading_stats(open_loading)["remaining"]
-        if data["qty"] > remaining:
+        if qty + qty_gift > remaining:
             messages.error(request, f"Il ne reste que {remaining} sachet(s).")
             return redirect("core:home")
         client = None
         name = (data.get("client") or "").strip()
         if name:
             client, _ = Client.objects.get_or_create(name__iexact=name, defaults={"name": name})
-        Delivery.objects.create(loading=open_loading, client=client, qty=data["qty"],
+        Delivery.objects.create(loading=open_loading, client=client, qty=qty, qty_gift=qty_gift,
                                 unit_price=data["unit_price"], payment=data["payment"],
                                 lat=data["lat"], lng=data["lng"], created_by=request.user)
-        messages.success(request, f"{data['qty']} sachet(s) enregistré(s).")
+        parts = []
+        if qty:
+            parts.append(f"{qty} vendu(s)")
+        if qty_gift:
+            parts.append(f"{qty_gift} offert(s)")
+        messages.success(request, " · ".join(parts) + ".")
     else:
         for errors in form.errors.values():
             for error in errors:
@@ -186,18 +193,20 @@ def report(request):
     start = parse("from", today - timedelta(days=6))
     end = min(parse("to", today), today)
 
-    days, totals = [], {"qty": 0, "especes": 0, "wave": 0, "credit": 0, "rep_especes": 0, "rep_wave": 0}
+    keys = ["qty", "gift", "especes", "wave", "credit", "rep_especes", "rep_wave"]
+    days, totals = [], {k: 0 for k in keys}
     day = start
     while day <= end:
-        row = {"day": day, "qty": 0, "especes": 0, "wave": 0, "credit": 0, "rep_especes": 0, "rep_wave": 0}
+        row = {"day": day, **{k: 0 for k in keys}}
         for d in Delivery.objects.filter(loading__day=day):
             row["qty"] += d.qty
+            row["gift"] += d.qty_gift
             row[d.payment] += d.amount
         for r in Repayment.objects.filter(created_at__date=day):
             row["rep_" + r.method] += r.amount
         if any(v for k, v in row.items() if k != "day"):
             days.append(row)
-            for k in totals:
+            for k in keys:
                 totals[k] += row[k]
         day += timedelta(days=1)
 
@@ -211,26 +220,26 @@ def report(request):
 def export_csv(request):
     response = HttpResponse(content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="ventes-eau-{timezone.localdate()}.csv"'
-    response.write("\ufeff")                   # BOM pour Excel
+    response.write("\ufeff")
     writer = csv.writer(response, delimiter=";")
-    writer.writerow(["date", "heure", "chargement", "client", "sachets",
+    writer.writerow(["date", "heure", "chargement", "client", "sachets", "offerts",
                      "prix_unitaire", "montant", "paiement"])
     recap = [["RECAPITULATIF"],
-             ["date", "chargement", "sachets_livres", "especes", "wave", "credit", "total_paye"]]
-    totals = {"qty": 0, "especes": 0, "wave": 0, "credit": 0, "paid": 0}
+             ["date", "chargement", "sachets_livres", "offerts", "especes", "wave", "credit", "total_paye"]]
+    totals = {"qty": 0, "gift": 0, "especes": 0, "wave": 0, "credit": 0, "paid": 0}
     labels = dict(Delivery.Payment.choices)
     for loading in Loading.objects.prefetch_related("deliveries").order_by("id"):
         stats = loading_stats(loading)
         for d in loading.deliveries.all():
             moment = timezone.localtime(d.created_at)
             writer.writerow([moment.strftime("%d/%m/%Y"), moment.strftime("%H:%M"), loading.number,
-                             d.client.name if d.client else "", d.qty, d.unit_price,
+                             d.client.name if d.client else "", d.qty, d.qty_gift, d.unit_price,
                              d.amount, labels[d.payment]])
-        recap.append([loading.day.strftime("%d/%m/%Y"), loading.number, stats["qty"],
+        recap.append([loading.day.strftime("%d/%m/%Y"), loading.number, stats["qty"], stats["gift"],
                       stats["especes"], stats["wave"], stats["credit"], stats["paid"]])
         for k in totals:
             totals[k] += stats[k]
-    recap.append(["TOTAL", "", totals["qty"], totals["especes"], totals["wave"],
+    recap.append(["TOTAL", "", totals["qty"], totals["gift"], totals["especes"], totals["wave"],
                   totals["credit"], totals["paid"]])
     writer.writerow([])
     for row in recap:

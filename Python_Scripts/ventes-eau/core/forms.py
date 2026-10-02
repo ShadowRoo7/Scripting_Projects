@@ -14,8 +14,10 @@ class DeliveryForm(forms.Form):
     client = forms.CharField(label="Client", required=False,
         widget=forms.TextInput(attrs={"class": "form-control", "list": "client-list",
                                       "autocomplete": "off", "placeholder": "facultatif"}))
-    qty = forms.IntegerField(label="Sachets", min_value=1,
-        widget=forms.NumberInput(attrs={"class": "form-control", "min": "1"}))
+    qty = forms.IntegerField(label="Sachets", min_value=0, required=False,
+        widget=forms.NumberInput(attrs={"class": "form-control", "min": "0", "inputmode": "numeric"}))
+    qty_gift = forms.IntegerField(label="Offerts", min_value=0, required=False,
+        widget=forms.NumberInput(attrs={"class": "form-control", "min": "0", "inputmode": "numeric", "placeholder": "0"}))
     unit_price = forms.IntegerField(label="Prix unitaire", min_value=0,
         widget=forms.NumberInput(attrs={"class": "form-control", "min": "0"}))
     payment = forms.ChoiceField(label="Paiement", choices=Delivery.Payment.choices,
@@ -25,7 +27,11 @@ class DeliveryForm(forms.Form):
 
     def clean(self):
         cleaned = super().clean()
-        if cleaned.get("payment") == Delivery.Payment.CREDIT and not (cleaned.get("client") or "").strip():
+        qty = cleaned.get("qty") or 0
+        gift = cleaned.get("qty_gift") or 0
+        if qty + gift < 1:
+            raise forms.ValidationError("Indiquez au moins 1 sachet (vendu ou offert).")
+        if cleaned.get("payment") == Delivery.Payment.CREDIT and qty > 0 and not (cleaned.get("client") or "").strip():
             raise forms.ValidationError("Un nom de client est obligatoire pour une vente à crédit.")
         return cleaned
 

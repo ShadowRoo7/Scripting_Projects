@@ -8,13 +8,14 @@ from .models import Client, Delivery, Loading, Repayment
 
 
 def loading_stats(loading):
-    s = {"qty": 0, "especes": 0, "wave": 0, "credit": 0}
+    s = {"qty": 0, "gift": 0, "especes": 0, "wave": 0, "credit": 0}
     for d in loading.deliveries.all():
         s["qty"] += d.qty
+        s["gift"] += d.qty_gift
         s[d.payment] += d.amount
     s["paid"] = s["especes"] + s["wave"]
     s["total"] = s["paid"] + s["credit"]
-    s["remaining"] = loading.available - s["qty"]
+    s["remaining"] = loading.available - s["qty"] - s["gift"]
     return s
 
 
@@ -34,9 +35,10 @@ def suggested_carried_and_price():
 
 def today_totals():
     today = timezone.localdate()
-    t = {"qty": 0, "especes": 0, "wave": 0, "credit": 0, "rep_especes": 0, "rep_wave": 0}
+    t = {"qty": 0, "gift": 0, "especes": 0, "wave": 0, "credit": 0, "rep_especes": 0, "rep_wave": 0}
     for d in Delivery.objects.filter(loading__day=today):
         t["qty"] += d.qty
+        t["gift"] += d.qty_gift
         t[d.payment] += d.amount
     for r in Repayment.objects.filter(created_at__date=today):
         t["rep_" + r.method] += r.amount

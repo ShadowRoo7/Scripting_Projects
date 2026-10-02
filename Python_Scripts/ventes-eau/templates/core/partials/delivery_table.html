@@ -18,7 +18,7 @@
             <i class="bi bi-geo-alt-fill"></i> Lieu</a>
         {% else %}<span class="text-muted">—</span>{% endif %}
       </td>
-      <td class="text-end">{{ d.qty }}</td>
+            <td class="text-end">{{ d.qty }}{% if d.qty_gift %} <span class="badge text-bg-secondary ms-1" title="{{ d.qty_gift }} sachet(s) offert(s)">+{{ d.qty_gift }} 🎁</span>{% endif %}</td>
       <td class="text-end">{{ d.unit_price|intcomma }}</td>
       <td class="text-end"><b>{{ d.amount|intcomma }}</b> F</td>
       <td>

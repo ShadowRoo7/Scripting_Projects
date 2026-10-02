@@ -19,7 +19,7 @@
         <td><span class="badge text-bg-primary">#{{ r.loading.number }}</span></td>
         <td>{{ r.loading.created_at|date:"d/m H:i" }}</td>
         <td class="text-end">{{ r.loading.available }}</td>
-        <td class="text-end">{{ r.stats.qty }}</td>
+        <td class="text-end">{{ r.stats.qty }}{% if r.stats.gift %} <span class="small text-muted">(+{{ r.stats.gift }}🎁)</span>{% endif %}</td>
         <td class="text-end">{{ r.stats.remaining }}</td>
         <td class="text-end"><b>{{ r.stats.paid|intcomma }}</b></td>
         <td class="text-end">{{ r.stats.credit|intcomma }}</td>

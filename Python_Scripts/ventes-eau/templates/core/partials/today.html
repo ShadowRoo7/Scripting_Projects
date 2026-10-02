@@ -2,7 +2,10 @@
 <div class="row g-3 mb-3">
   <div class="col-6 col-lg-3"><div class="stat tone-blue">
     <div class="ic"><i class="bi bi-droplet-fill"></i></div>
-    <div><div class="lbl">Sachets vendus</div><div class="val">{{ t.qty }}</div></div>
+    <div>
+      <div class="lbl">Sachets vendus</div><div class="val">{{ t.qty }}</div>
+      {% if t.gift %}<span class="small text-muted">+{{ t.gift }} offert(s) 🎁</span>{% endif %}
+    </div>
   </div></div>
   <div class="col-6 col-lg-3"><div class="stat tone-green">
     <div class="ic"><i class="bi bi-cash-coin"></i></div>

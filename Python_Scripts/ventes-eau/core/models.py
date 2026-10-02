@@ -51,6 +51,7 @@ class Delivery(models.Model):
     client = models.ForeignKey(Client, null=True, blank=True, on_delete=models.SET_NULL,
                                related_name="deliveries")
     qty = models.PositiveIntegerField("Sachets")
+    qty_gift = models.PositiveIntegerField("Sachets offerts", default=0)
     unit_price = models.PositiveIntegerField("Prix unitaire")
     payment = models.CharField("Paiement", max_length=10, choices=Payment.choices,
                                default=Payment.ESPECES)

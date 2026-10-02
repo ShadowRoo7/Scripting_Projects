@@ -27,15 +27,19 @@
         <label class="form-label small text-muted" for="{{ delivery_form.client.id_for_label }}">Client (facultatif)</label>
         {{ delivery_form.client }}
       </div>
-      <div class="col-6 col-md-2">
+      <div class="col-4 col-md-2">
         <label class="form-label small text-muted" for="{{ delivery_form.qty.id_for_label }}">Sachets</label>
         {{ delivery_form.qty }}
       </div>
-      <div class="col-6 col-md-2">
+      <div class="col-4 col-md-1">
+        <label class="form-label small text-muted" for="{{ delivery_form.qty_gift.id_for_label }}">Offerts</label>
+        {{ delivery_form.qty_gift }}
+      </div>
+      <div class="col-4 col-md-2">
         <label class="form-label small text-muted" for="{{ delivery_form.unit_price.id_for_label }}">Prix unitaire (F)</label>
         {{ delivery_form.unit_price }}
       </div>
-      <div class="col-6 col-md-3">
+      <div class="col-6 col-md-2">
         <label class="form-label small text-muted" for="{{ delivery_form.payment.id_for_label }}">Paiement</label>
         {{ delivery_form.payment }}
       </div>
