@@ -1,33 +1,55 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div hx-get="{% url 'core:partial_today' %}" hx-trigger="every 5s" hx-swap="innerHTML">
+<div hx-get="{% url 'core:partial_today' %}" hx-trigger="every 15s" hx-swap="innerHTML">
   {% include "core/partials/today.html" %}
 </div>
 
-<div hx-get="{% url 'core:partial_current' %}" hx-trigger="every 5s" hx-swap="innerHTML">
+<div hx-get="{% url 'core:partial_current' %}" hx-trigger="every 15s" hx-swap="innerHTML">
   {% include "core/partials/current_zone.html" %}
 </div>
 
-<div hx-get="{% url 'core:partial_history' %}" hx-trigger="every 15s" hx-swap="innerHTML">
+<div hx-get="{% url 'core:partial_history' %}" hx-trigger="every 30s" hx-swap="innerHTML">
   {% include "core/partials/history.html" %}
 </div>
 
 <script>
-document.addEventListener("submit", function (e) {
-  const form = e.target;
-  if (form.id !== "delivery-form") return;
-  const name = form.querySelector("[name=client]");
+document.addEventListener("click", function (e) {
+  const btn = e.target.closest("#geo-btn");
+  if (!btn || btn.disabled) return;
+  const form = btn.closest("form");
   const lat = form.querySelector("[name=lat]");
   const lng = form.querySelector("[name=lng]");
-  if (name.value.trim() === "" && navigator.geolocation) {
-    e.preventDefault();
-    const go = () => form.submit();
-    navigator.geolocation.getCurrentPosition(
-      (p) => { lat.value = p.coords.latitude.toFixed(6);
-               lng.value = p.coords.longitude.toFixed(6); go(); },
-      go, { enableHighAccuracy: true, timeout: 6000 });
+
+  if (!btn.classList.toggle("active")) {          // désactivé → on efface la position
+    btn.setAttribute("aria-pressed", "false");
+    lat.value = ""; lng.value = "";
+    btn.classList.replace("btn-success", "btn-outline-secondary");
+    btn.innerHTML = '<i class="bi bi-geo-alt"></i>';
+    return;
   }
+  // activé → on récupère la position tout de suite (pas au moment d'envoyer)
+  btn.setAttribute("aria-pressed", "true");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+  navigator.geolocation.getCurrentPosition(
+    (p) => {
+      lat.value = p.coords.latitude.toFixed(6);
+      lng.value = p.coords.longitude.toFixed(6);
+      btn.disabled = false;
+      btn.classList.replace("btn-outline-secondary", "btn-success");
+      btn.innerHTML = '<i class="bi bi-geo-alt-fill"></i>';
+    },
+    (err) => {
+      btn.disabled = false;
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+      btn.innerHTML = '<i class="bi bi-geo-alt"></i>';
+      alert(err.code === 1
+        ? "GPS refusé. Autorisez la position dans le navigateur pour utiliser ce bouton."
+        : "Position introuvable. Vérifiez que le GPS est activé, puis réessayez.");
+    },
+    { enableHighAccuracy: true, timeout: 8000 });
 });
 </script>
 {% endblock %}
