@@ -23,7 +23,12 @@
         <td class="text-end">{{ r.stats.remaining }}</td>
         <td class="text-end"><b>{{ r.stats.paid|intcomma }}</b></td>
         <td class="text-end">{{ r.stats.credit|intcomma }}</td>
-        <td class="no-print"><a class="btn btn-sm btn-link p-0" href="{% url 'core:loading_detail' r.loading.pk %}">Détails <i class="bi bi-chevron-right"></i></a></td>
+        <td class="no-print">
+          <a class="btn btn-sm btn-link p-0 me-2" href="{% url 'core:loading_pdf' r.loading.pk %}" title="Télécharger le PDF">
+            <i class="bi bi-file-earmark-pdf text-danger"></i>
+          </a>
+          <a class="btn btn-sm btn-link p-0" href="{% url 'core:loading_detail' r.loading.pk %}">Détails <i class="bi bi-chevron-right"></i></a>
+        </td>
       </tr>
       {% empty %}
       <tr><td colspan="8"><div class="empty"><span class="emoji">📭</span>Aucun chargement terminé.</div></td></tr>

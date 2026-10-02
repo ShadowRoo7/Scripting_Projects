@@ -1,12 +1,20 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 no-print">
   <h1 class="h4 mb-0">Rapport</h1>
-  <button class="btn btn-outline-primary" onclick="window.print()"><i class="bi bi-printer"></i> Imprimer / PDF</button>
+  <div class="d-flex gap-2 flex-wrap">
+    <a class="btn btn-primary" href="{% url 'core:report_pdf' %}?from={{ start|date:'Y-m-d' }}&to={{ end|date:'Y-m-d' }}">
+      <i class="bi bi-file-earmark-pdf"></i> PDF détaillé
+    </a>
+    <a class="btn btn-outline-primary" href="{% url 'core:report_pdf_summary' %}?from={{ start|date:'Y-m-d' }}&to={{ end|date:'Y-m-d' }}">
+      <i class="bi bi-file-earmark-pdf"></i> PDF résumé
+    </a>
+    <button class="btn btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer"></i> Imprimer</button>
+  </div>
 </div>
 
-<form method="get" class="row g-2 align-items-end mb-4 no-print">
+<form method="get" class="row g-2 align-items-end mb-3 no-print">
   <div class="col-auto">
     <label class="form-label small text-muted">Du</label>
     <input type="date" name="from" value="{{ start|date:'Y-m-d' }}" class="form-control">
@@ -16,6 +24,10 @@
     <input type="date" name="to" value="{{ end|date:'Y-m-d' }}" class="form-control">
   </div>
   <div class="col-auto"><button class="btn btn-primary">Afficher</button></div>
+  <div class="col-auto d-flex gap-2 ms-2">
+    <a class="btn btn-sm btn-outline-secondary" href="?from={{ today|date:'Y-m-d' }}&to={{ today|date:'Y-m-d' }}">Aujourd'hui</a>
+    <a class="btn btn-sm btn-outline-secondary" href="?from={{ week_ago|date:'Y-m-d' }}&to={{ today|date:'Y-m-d' }}">7 derniers jours</a>
+  </div>
 </form>
 
 <section class="card shadow-sm mb-3">
@@ -23,8 +35,8 @@
   <div class="table-responsive">
   <table class="table table-sm align-middle mb-0">
     <thead class="table-light"><tr>
-      <th>Jour</th><th class="text-end">Sachets</th><th class="text-end">Espèces</th>
-      <th class="text-end">Wave</th><th class="text-end">Crédit vendu</th>
+      <th>Jour</th><th class="text-end">Sachets</th><th class="text-end">Offerts</th>
+      <th class="text-end">Espèces</th><th class="text-end">Wave</th><th class="text-end">Crédit vendu</th>
       <th class="text-end">Remb. espèces</th><th class="text-end">Remb. Wave</th><th class="text-end">Encaissé</th>
     </tr></thead>
     <tbody>
@@ -32,6 +44,7 @@
       <tr>
         <td>{{ d.day|date:"D d/m/Y" }}</td>
         <td class="text-end">{{ d.qty }}</td>
+        <td class="text-end">{{ d.gift }}</td>
         <td class="text-end">{{ d.especes|intcomma }}</td>
         <td class="text-end">{{ d.wave|intcomma }}</td>
         <td class="text-end">{{ d.credit|intcomma }}</td>
@@ -39,13 +52,14 @@
         <td class="text-end">{{ d.rep_wave|intcomma }}</td>
         <td class="text-end fw-bold">{{ d.especes|add:d.rep_especes|add:d.wave|add:d.rep_wave|intcomma }}</td>
       </tr>
-      {% empty %}<tr><td colspan="8" class="text-muted">Aucune donnée sur cette période.</td></tr>{% endfor %}
+      {% empty %}<tr><td colspan="9" class="text-muted">Aucune donnée sur cette période.</td></tr>{% endfor %}
     </tbody>
     {% if days %}
     <tfoot class="table-dark fw-bold">
       <tr>
         <td>TOTAL</td>
         <td class="text-end">{{ totals.qty }}</td>
+        <td class="text-end">{{ totals.gift }}</td>
         <td class="text-end">{{ totals.especes|intcomma }}</td>
         <td class="text-end">{{ totals.wave|intcomma }}</td>
         <td class="text-end">{{ totals.credit|intcomma }}</td>

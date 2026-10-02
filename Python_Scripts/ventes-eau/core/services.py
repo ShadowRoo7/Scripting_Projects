@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.utils import timezone
@@ -26,7 +26,6 @@ def next_number():
 
 
 def suggested_carried_and_price():
-    """Restant du dernier chargement + dernier prix → pré-remplissage (modifiable)."""
     last = Loading.objects.order_by("-id").first()
     if not last:
         return 0, ""
@@ -68,6 +67,22 @@ def current_context():
         ctx["next_number"] = next_number()
     return ctx
 
+
+def parse_period(request):
+    """Lit ?from=YYYY-MM-DD&to=YYYY-MM-DD (7 derniers jours par défaut)."""
+    today = timezone.localdate()
+
+    def parse(name, default):
+        try:
+            return datetime.strptime(request.GET.get(name, ""), "%Y-%m-%d").date()
+        except ValueError:
+            return default
+
+    start = parse("from", today - timedelta(days=6))
+    end = min(parse("to", today), today)
+    return start, end
+
+
 def report_data(start, end):
     keys = ["qty", "gift", "especes", "wave", "credit", "rep_especes", "rep_wave"]
     days, totals = [], {k: 0 for k in keys}
@@ -88,3 +103,25 @@ def report_data(start, end):
     totals["paid"] = totals["especes"] + totals["wave"]
     totals["cash_in"] = totals["paid"] + totals["rep_especes"] + totals["rep_wave"]
     return days, totals
+
+
+def day_report(day):
+    """Rapport détaillé d'une journée : chargements + remboursements + totaux."""
+    loadings = [{"loading": l, "stats": loading_stats(l)}
+                for l in Loading.objects.filter(day=day)
+                .prefetch_related("deliveries").order_by("id")]
+    repayments = list(Repayment.objects.filter(created_at__date=day)
+                      .select_related("client", "received_by").order_by("id"))
+    t = {"qty": 0, "gift": 0, "especes": 0, "wave": 0, "credit": 0, "rep_especes": 0, "rep_wave": 0}
+    for l in loadings:
+        s = l["stats"]
+        t["qty"] += s["qty"]
+        t["gift"] += s["gift"]
+        t["especes"] += s["especes"]
+        t["wave"] += s["wave"]
+        t["credit"] += s["credit"]
+    for r in repayments:
+        t["rep_" + r.method] += r.amount
+    t["paid"] = t["especes"] + t["wave"]
+    t["cash_in"] = t["paid"] + t["rep_especes"] + t["rep_wave"]
+    return {"day": day, "loadings": loadings, "repayments": repayments, "totals": t}

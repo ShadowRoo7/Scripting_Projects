@@ -1,13 +1,5 @@
 import csv
-from datetime import datetime, timedelta
-
-from io import BytesIO
-
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4, landscape
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.units import mm
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -18,17 +10,18 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from . import pdf
 from .forms import DeliveryForm, LoadingForm, RepaymentForm, TeamUserForm
 from .models import Client, Delivery, Loading, Repayment
 from .services import (current_context, history_context, loading_stats,
-                       next_number, report_data, today_totals)
-
+                       next_number, parse_period, report_data, today_totals)
 
 User = get_user_model()
 
 
 def _is_boss(user):
     return user.is_authenticated and (user.is_superuser or user.groups.filter(name="Chef").exists())
+
 
 boss_required = user_passes_test(_is_boss)
 
@@ -75,7 +68,7 @@ def loading_create(request):
         loading.created_by = request.user
         try:
             loading.save()
-        except IntegrityError:                 # deux démarrages simultanés → on renumérote
+        except IntegrityError:
             loading.number = next_number()
             loading.save()
         messages.success(request, f"Chargement n° {loading.number} démarré.")
@@ -102,10 +95,16 @@ def loading_detail(request, pk):
 
 
 @login_required
+def loading_pdf(request, pk):
+    loading = get_object_or_404(Loading, pk=pk)
+    return pdf.loading_report(request, loading)
+
+
+@login_required
 def loading_delete(request, pk):
     loading = get_object_or_404(Loading, pk=pk)
     if request.method == "POST":
-        loading.deliveries.all().delete()      # supprimées une à une → tout est tracé
+        loading.deliveries.all().delete()
         loading.delete()
         messages.success(request, "Chargement supprimé (action tracée dans l'historique).")
     return redirect("core:home")
@@ -187,93 +186,30 @@ def repayment_add(request):
     return redirect("core:credits")
 
 
-# ---------- Rapport & export ----------
+# ---------- Rapports & exports ----------
 
 @login_required
 def report(request):
-    today = timezone.localdate()
-
-    def parse(name, default):
-        try:
-            return datetime.strptime(request.GET.get(name, ""), "%Y-%m-%d").date()
-        except ValueError:
-            return default
-
-    start = parse("from", today - timedelta(days=6))
-    end = min(parse("to", today), today)
+    start, end = parse_period(request)
     days, totals = report_data(start, end)
-    return render(request, "core/report.html",
-                  {"start": start, "end": end, "days": days, "totals": totals})
+    return render(request, "core/report.html", {
+        "start": start, "end": end, "days": days, "totals": totals,
+        "today": timezone.localdate(),
+        "week_ago": timezone.localdate() - timedelta(days=6),
+    })
+
 
 @login_required
 def report_pdf(request):
-    today = timezone.localdate()
+    start, end = parse_period(request)
+    return pdf.period_report(request, start, end)
 
-    def parse(name, default):
-        try:
-            return datetime.strptime(request.GET.get(name, ""), "%Y-%m-%d").date()
-        except ValueError:
-            return default
 
-    start = parse("from", today - timedelta(days=6))
-    end = min(parse("to", today), today)
-    days, totals = report_data(start, end)
+@login_required
+def report_pdf_summary(request):
+    start, end = parse_period(request)
+    return pdf.period_summary(request, start, end)
 
-    fmt = lambda n: f"{n:,}".replace(",", " ")   # 12345 -> 12 345
-
-    data = [["Jour", "Sachets", "Offerts", "Espèces", "Wave", "Crédit vendu",
-             "Remb. espèces", "Remb. Wave", "Encaissé"]]
-    for d in days:
-        enc = d["especes"] + d["rep_especes"] + d["wave"] + d["rep_wave"]
-        data.append([d["day"].strftime("%d/%m/%Y"), str(d["qty"]), str(d["gift"]),
-                     fmt(d["especes"]), fmt(d["wave"]), fmt(d["credit"]),
-                     fmt(d["rep_especes"]), fmt(d["rep_wave"]), fmt(enc)])
-    data.append(["TOTAL", str(totals["qty"]), str(totals["gift"]), fmt(totals["especes"]),
-                 fmt(totals["wave"]), fmt(totals["credit"]), fmt(totals["rep_especes"]),
-                 fmt(totals["rep_wave"]), fmt(totals["cash_in"])])
-
-    buf = BytesIO()
-    doc = SimpleDocTemplate(buf, pagesize=landscape(A4),
-                            leftMargin=15 * mm, rightMargin=15 * mm,
-                            topMargin=15 * mm, bottomMargin=15 * mm,
-                            title="Rapport des ventes d'eau")
-    title_style = ParagraphStyle("T", fontName="Helvetica-Bold", fontSize=16,
-                                 textColor=colors.HexColor("#062544"), spaceAfter=3)
-    sub_style = ParagraphStyle("S", fontName="Helvetica", fontSize=9,
-                               textColor=colors.HexColor("#5c7893"))
-    story = [
-        Paragraph("Rapport des ventes d'eau", title_style),
-        Paragraph(f"Période : du {start:%d/%m/%Y} au {end:%d/%m/%Y} — "
-                  f"généré le {timezone.localtime():%d/%m/%Y à %H:%M} par "
-                  f"{request.user.first_name or request.user.username}", sub_style),
-        Spacer(1, 12),
-    ]
-    if days:
-        table = Table(data, colWidths=[45 * mm] + [27.7 * mm] * 8, repeatRows=1)
-        table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#062544")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("FONTNAME", (0, 1), (-1, -2), "Helvetica"),
-            ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
-            ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#d9ecf7")),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -2), [colors.white, colors.HexColor("#eef5fb")]),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#b8cfe0")),
-            ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ("TOPPADDING", (0, 0), (-1, -1), 5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-        ]))
-        story.append(table)
-    else:
-        story.append(Paragraph("Aucune donnée sur cette période.", sub_style))
-
-    doc.build(story)
-    response = HttpResponse(buf.getvalue(), content_type="application/pdf")
-    response["Content-Disposition"] = (
-        f'attachment; filename="rapport-ventes-eau-{start:%Y-%m-%d}_{end:%Y-%m-%d}.pdf"')
-    return response
 
 @login_required
 def export_csv(request):
