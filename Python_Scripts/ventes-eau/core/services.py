@@ -67,3 +67,24 @@ def current_context():
         ctx["loading_form"] = LoadingForm(initial={"qty_carried": carried, "default_price": price})
         ctx["next_number"] = next_number()
     return ctx
+
+def report_data(start, end):
+    keys = ["qty", "gift", "especes", "wave", "credit", "rep_especes", "rep_wave"]
+    days, totals = [], {k: 0 for k in keys}
+    day = start
+    while day <= end:
+        row = {"day": day, **{k: 0 for k in keys}}
+        for d in Delivery.objects.filter(loading__day=day):
+            row["qty"] += d.qty
+            row["gift"] += d.qty_gift
+            row[d.payment] += d.amount
+        for r in Repayment.objects.filter(created_at__date=day):
+            row["rep_" + r.method] += r.amount
+        if any(v for k, v in row.items() if k != "day"):
+            days.append(row)
+            for k in keys:
+                totals[k] += row[k]
+        day += timedelta(days=1)
+    totals["paid"] = totals["especes"] + totals["wave"]
+    totals["cash_in"] = totals["paid"] + totals["rep_especes"] + totals["rep_wave"]
+    return days, totals
